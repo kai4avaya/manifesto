@@ -24,6 +24,299 @@
         
         /* Frosted Glass Effect */
         .glass-pane {
+            background-color: rgba(245, 245, 244, 0.5); /* Stone 100 with opacity */
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+        }
+        
+        .animation-parent {
+            perspective: 1200px;
+        }
+        #animation-container {
+            transition: transform 0.4s ease-out;
+        }
+        
+        /* Grid line transitions */
+        #animation-container svg #grid-wrapper {
+             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #animation-container svg line {
+            transition: stroke 0.2s ease-out, stroke-width 0.2s ease-out;
+        }
+        .line-highlight {
+            stroke: rgba(28, 25, 23, 0.7) !important;
+            stroke-width: 2px !important;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+
+    <div class="relative w-full h-screen">
+        <!-- Background Animation Pane -->
+        <div class="hidden lg:block fixed top-0 left-0 w-full h-full animation-parent">
+            <div id="animation-container" class="w-full h-full transition-opacity duration-500 ease-in-out">
+                <!-- JS will populate this with SVG -->
+            </div>
+        </div>
+
+        <!-- Foreground Text Pane -->
+        <div id="manifesto-content" class="manifesto-text absolute top-0 left-0 w-full lg:w-1/2 h-screen overflow-y-auto p-8 md:p-12 lg:p-16 no-scrollbar glass-pane">
+            <div class="max-w-prose space-y-10">
+                <section data-section="0" class="min-h-[50vh] py-16">
+                    <h1 class="text-4xl md:text-5xl font-bold text-stone-900 mb-6">The Process Manifesto</h1>
+                    <p class="text-lg text-stone-700 leading-relaxed">Our company is not built to create products. Our company is built to create process. The products we release are artifacts of that learning—experiments we run to test, measure, and refine the process itself.</p>
+                </section>
+
+                <section data-section="1" class="min-h-[50vh] py-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-8">Core Principles</h2>
+                    <ul class="space-y-6 text-stone-600">
+                        <li><strong class="font-semibold text-stone-800">The Process is the Product.</strong> Our primary goal is to master the system of creation. We build software to understand how to build software better.</li>
+                        <li><strong class="font-semibold text-stone-800">Build to Learn.</strong> We default to building our own tools, frameworks, and platforms. This forces a first-principles understanding. These internal tools are our most valuable assets and potential future products.</li>
+                        <li><strong class="font-semibold text-stone-800">Pragmatism Over Dogma.</strong> We build by default, but we are pragmatic. We use the best tool for the job, whether we built it or not. The goal is to improve the process, not to prove a point.</li>
+                        <li><strong class="font-semibold text-stone-800">Radical Agility.</strong> We are loyal to the process, not to a specific tool, feature, or product. If a component of our system—internal or external—is not working, we abandon it and iterate.</li>
+                    </ul>
+                </section>
+
+                <section data-section="2" class="min-h-[50vh] py-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-8">How We Operate</h2>
+                    <ul class="space-y-6 text-stone-600">
+                        <li><strong class="font-semibold text-stone-800">AI-Human Unification.</strong> We do not see AI and human engineers as separate. We build unified pipelines where AI automates, assists, and accelerates human effort. If a task can be automated or augmented by AI, it will be.</li>
+                        <li><strong class="font-semibold text-stone-800">Constant Experimentation.</strong> The state of the art is our starting line. We actively seek out and implement the latest tools, models, and techniques to test their impact on our process.</li>
+                        <li><strong class="font-semibold text-stone-800">Document and Share.</strong> A process that isn't documented is not a process—it's a habit. We document everything. We share what we learn, and our internal tools, openly.</li>
+                        <li><strong class="font-semibold text-stone-800">Feedback as Data.</strong> Feedback is not criticism; it is data. We use our products to gather data on the effectiveness of our process.</li>
+                    </ul>
+                </section>
+                
+                 <section data-section="3" class="py-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-8">Data-Driven Refinement</h2>
+                    <p class="text-stone-600">Our system is in a constant state of refinement. We use data and patterns to track what works and what doesn't. We measure everything, find the bottlenecks, and eliminate them.</p>
+                </section>
+
+                <section data-section="4" class="min-h-[50vh] py-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900 mb-8">Ethics</h2>
+                    <ul class="space-y-6 text-stone-600">
+                        <li><strong class="font-semibold text-stone-800">Local-First & Decentralized.</strong> We build local-first, decentralized systems that put users in control of their data. Every product we release is an experiment in empowering users to choose how they navigate, store, and share their information—testing and refining our approach to user agency and data sovereignty.</li>
+                        <li><strong class="font-semibold text-stone-800">Human-Centric Augmentation.</strong> Our goal is to augment human potential, not replace it. The process serves human experience, and our tools are designed to celebrate human creativity.</li>
+                        <li><strong class="font-semibold text-stone-800">Value the Raw.</strong> The messy, honest, unedited human voice is the most valuable data we can collect. We seek out raw experience as the ultimate ground truth.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const manifestoContent = document.getElementById('manifesto-content');
+            const animationContainer = document.getElementById('animation-container');
+            const sections = document.querySelectorAll('[data-section]');
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            let currentAnimation = -1;
+            let animationFrameId;
+            let w = window.innerWidth;
+            let h = window.innerHeight;
+            const gridSize = 1500;
+            const step = 100;
+            const numCells = gridSize / step;
+
+            const masterPath = [
+                {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 7, y: 2}, 
+                {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 5, y: 4},
+                {x: 4, y: 4}, {x: 4, y: 5}, {x: 4, y: 6}, {x: 5, y: 6},
+                {x: 6, y: 6}, {x: 6, y: 7}, {x: 6, y: 8}, {x: 7, y: 8},
+                {x: 8, y: 8}, {x: 8, y: 9}, {x: 8, y: 10}, {x: 9, y: 10},
+                {x: 10, y: 10}, {x: 11, y: 10}, {x: 11, y: 11}, {x: 11, y: 12},
+                {x: 10, y: 12}, {x: 9, y: 12}, {x: 8, y: 12}, {x: 8, y: 13},
+                {x: 8, y: 14}, {x: 8, y: 15}
+            ];
+
+            function setupGrid() {
+                const svg = document.createElementNS(svgNS, 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                svg.style.overflow = 'visible';
+                animationContainer.innerHTML = '';
+                animationContainer.appendChild(svg);
+
+                const gWrapper = document.createElementNS(svgNS, 'g');
+                gWrapper.id = 'grid-wrapper';
+
+                const defaultStroke = 'rgba(28, 25, 23, 0.2)';
+                const defaultStrokeWidth = '1';
+
+                // Create horizontal segments
+                for (let y = 0; y <= numCells; y++) {
+                    for (let x = 0; x < numCells; x++) {
+                        const line = document.createElementNS(svgNS, 'line');
+                        line.id = `h-seg-${x}-${y}`;
+                        line.setAttribute('x1', x * step);
+                        line.setAttribute('y1', y * step);
+                        line.setAttribute('x2', (x + 1) * step);
+                        line.setAttribute('y2', y * step);
+                        line.setAttribute('stroke', defaultStroke);
+                        line.setAttribute('stroke-width', defaultStrokeWidth);
+                        gWrapper.appendChild(line);
+                    }
+                }
+                // Create vertical segments
+                for (let x = 0; x <= numCells; x++) {
+                    for (let y = 0; y < numCells; y++) {
+                        const line = document.createElementNS(svgNS, 'line');
+                        line.id = `v-seg-${x}-${y}`;
+                        line.setAttribute('x1', x * step);
+                        line.setAttribute('y1', y * step);
+                        line.setAttribute('x2', x * step);
+                        line.setAttribute('y2', (y + 1) * step);
+                        line.setAttribute('stroke', defaultStroke);
+                        line.setAttribute('stroke-width', defaultStrokeWidth);
+                        gWrapper.appendChild(line);
+                    }
+                }
+                
+                svg.appendChild(gWrapper);
+                morphGrid(0); // Initial morph state
+            }
+            
+            function morphGrid(index) {
+                const gWrapper = document.getElementById('grid-wrapper');
+                if (!gWrapper) return;
+
+                const initialX = (w - gridSize) / 2 + 200;
+                const initialY = (h - gridSize) / 2;
+                
+                gWrapper.style.transformOrigin = `${gridSize / 2}px ${gridSize / 2}px`;
+
+                let baseTransform = `translate(${initialX}px, ${initialY}px)`;
+
+                switch (index % 5) {
+                    case 0: baseTransform += ` rotate(0deg) scale(1)`; break;
+                    case 1: baseTransform += ` rotate(-20deg) scale(1.15)`; break;
+                    case 2: baseTransform += ` rotate(10deg) scale(1.25)`; break;
+                    case 3: baseTransform += ` rotate(25deg) scale(1.15)`; break;
+                    case 4: baseTransform += ` rotate(0deg) scale(0.9)`; break;
+                }
+                gWrapper.style.transform = baseTransform;
+            }
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const sectionIndex = parseInt(entry.target.dataset.section);
+                        if (sectionIndex !== currentAnimation) {
+                            currentAnimation = sectionIndex;
+                            morphGrid(sectionIndex);
+                        }
+                    }
+                });
+            }, { root: manifestoContent, threshold: 0.5, rootMargin: "-25% 0px -25% 0px" });
+
+            sections.forEach(section => observer.observe(section));
+
+            function updateSnakeHighlight(scrollPercent) {
+                const allLines = document.querySelectorAll('#grid-wrapper line');
+                allLines.forEach(line => line.classList.remove('line-highlight'));
+
+                const maxVisibleLength = 15;
+                const peakScroll = 0.5;
+                const minLength = 2;
+                let currentLength;
+
+                if (scrollPercent < peakScroll) {
+                    currentLength = minLength + (maxVisibleLength - minLength) * (scrollPercent / peakScroll);
+                } else {
+                    currentLength = maxVisibleLength - (maxVisibleLength) * ((scrollPercent - peakScroll) / (1 - peakScroll));
+                }
+                const visibleLength = Math.round(Math.max(0, currentLength));
+
+                if (visibleLength < 1) return;
+                
+                // New logic to calculate snake path based on a center point
+                const centerIndex = Math.floor(scrollPercent * (masterPath.length - 1));
+                const halfLength = Math.floor(visibleLength / 2);
+                const startIndex = Math.max(0, centerIndex - halfLength);
+                const endIndex = Math.min(masterPath.length, centerIndex + halfLength + 1);
+
+                const visiblePath = masterPath.slice(startIndex, endIndex);
+
+                for (let i = 0; i < visiblePath.length - 1; i++) {
+                    const p1 = visiblePath[i];
+                    const p2 = visiblePath[i + 1];
+                    let segmentId;
+
+                    if (p1.x === p2.x) { // Vertical segment
+                        const y = Math.min(p1.y, p2.y);
+                        segmentId = `v-seg-${p1.x}-${y}`;
+                    } else { // Horizontal segment
+                        const x = Math.min(p1.x, p2.x);
+                        segmentId = `h-seg-${x}-${p1.y}`;
+                    }
+
+                    const segment = document.getElementById(segmentId);
+                    if (segment) {
+                        segment.classList.add('line-highlight');
+                    }
+                }
+            }
+
+            function handleScroll() {
+                const scrollableHeight = manifestoContent.scrollHeight - manifestoContent.clientHeight;
+                const scrollTop = manifestoContent.scrollTop;
+                const scrollPercent = scrollableHeight > 0 ? scrollTop / scrollableHeight : 0;
+                
+                updateSnakeHighlight(scrollPercent);
+
+                const rotateX = 15 - (scrollPercent * 10);
+                const rotateY = -15 + (scrollPercent * 10);
+                
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(() => {
+                    animationContainer.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+            }
+
+            manifestoContent.addEventListener('scroll', handleScroll);
+            
+            setupGrid();
+            handleScroll();
+
+            window.addEventListener('resize', () => {
+                w = window.innerWidth;
+                h = window.innerHeight;
+                setupGrid();
+                handleScroll();
+            });
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Process Manifesto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lora', serif;
+            background-color: #f5f5f4; /* Stone 100 */
+            color: #1c1917; /* Stone 900 */
+        }
+        .manifesto-text h1, .manifesto-text h2 {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Frosted Glass Effect */
+        .glass-pane {
             background-color: rgba(245, 245, 244, 0.75); /* Stone 100 with opacity */
             backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(16px);
