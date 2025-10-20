@@ -48,20 +48,31 @@
             stroke: rgba(28, 25, 23, 0.7) !important;
             stroke-width: 2px !important;
         }
+        
+        /* Mobile grid styling - increased opacity for better visibility */
+        @media (max-width: 1023px) {
+            #grid-wrapper line {
+                stroke: rgba(28, 25, 23, 0.4) !important; /* Darker grid lines on mobile */
+            }
+            .line-highlight {
+                stroke: rgba(28, 25, 23, 0.9) !important; /* Very visible snake on mobile */
+                stroke-width: 2px !important;
+            }
+        }
     </style>
 </head>
 <body class="overflow-hidden">
 
     <div class="relative w-full h-screen">
         <!-- Background Animation Pane -->
-        <div class="hidden lg:block fixed top-0 left-0 w-full h-full animation-parent">
+        <div class="fixed top-0 left-0 w-full h-full animation-parent">
             <div id="animation-container" class="w-full h-full transition-opacity duration-500 ease-in-out">
                 <!-- JS will populate this with SVG -->
             </div>
         </div>
 
         <!-- Foreground Text Pane -->
-        <div id="manifesto-content" class="manifesto-text absolute top-0 left-0 w-full lg:w-1/2 h-screen overflow-y-auto p-8 md:p-12 lg:p-16 no-scrollbar glass-pane">
+        <div id="manifesto-content" class="manifesto-text absolute top-0 left-0 w-full lg:w-1/2 h-screen overflow-y-auto p-8 md:p-12 lg:p-16 no-scrollbar glass-pane" style="background-color: rgba(245, 245, 244, 0.85);">
             <div class="max-w-prose space-y-10">
                 <section data-section="0" class="min-h-[50vh] py-16">
                     <h1 class="text-4xl md:text-5xl font-bold text-stone-900 mb-6">Thoughts On Process</h1>
@@ -120,11 +131,11 @@
             let animationFrameId;
             let w = window.innerWidth;
             let h = window.innerHeight;
-            const gridSize = 1500;
-            const step = 100;
-            const numCells = gridSize / step;
+            let gridSize = Math.min(1500, Math.max(w, h) * 1.5);
+            let step = Math.max(50, Math.min(100, gridSize / 15));
+            let numCells = Math.floor(gridSize / step);
 
-            const masterPath = [
+            let masterPath = [
                 {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 7, y: 2}, 
                 {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 5, y: 4},
                 {x: 4, y: 4}, {x: 4, y: 5}, {x: 4, y: 6}, {x: 5, y: 6},
@@ -136,6 +147,29 @@
             ];
 
             function setupGrid() {
+                // Recalculate grid parameters
+                w = window.innerWidth;
+                h = window.innerHeight;
+                gridSize = Math.min(1500, Math.max(w, h) * 1.5);
+                step = Math.max(50, Math.min(100, gridSize / 15));
+                numCells = Math.floor(gridSize / step);
+                
+                // Scale masterPath to fit current grid
+                const scaleFactor = Math.min(1, numCells / 16);
+                masterPath = [
+                    {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 7, y: 2}, 
+                    {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 5, y: 4},
+                    {x: 4, y: 4}, {x: 4, y: 5}, {x: 4, y: 6}, {x: 5, y: 6},
+                    {x: 6, y: 6}, {x: 6, y: 7}, {x: 6, y: 8}, {x: 7, y: 8},
+                    {x: 8, y: 8}, {x: 8, y: 9}, {x: 8, y: 10}, {x: 9, y: 10},
+                    {x: 10, y: 10}, {x: 11, y: 10}, {x: 11, y: 11}, {x: 11, y: 12},
+                    {x: 10, y: 12}, {x: 9, y: 12}, {x: 8, y: 12}, {x: 8, y: 13},
+                    {x: 8, y: 14}, {x: 8, y: 15}
+                ].map(point => ({
+                    x: Math.min(Math.floor(point.x * scaleFactor), numCells - 1),
+                    y: Math.min(Math.floor(point.y * scaleFactor), numCells - 1)
+                }));
+                
                 const svg = document.createElementNS(svgNS, 'svg');
                 svg.setAttribute('width', '100%');
                 svg.setAttribute('height', '100%');
@@ -187,7 +221,7 @@
                 const gWrapper = document.getElementById('grid-wrapper');
                 if (!gWrapper) return;
 
-                const initialX = (w - gridSize) / 2 + 200;
+                const initialX = (w - gridSize) / 2 + (w > 1024 ? 200 : 50);
                 const initialY = (h - gridSize) / 2;
                 
                 gWrapper.style.transformOrigin = `${gridSize / 2}px ${gridSize / 2}px`;
